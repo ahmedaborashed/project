@@ -1,0 +1,1166 @@
+<!doctype html>
+<html lang="ar" id="html-root">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Doctor</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<script src="/eel.js"></script>
+
+<style>
+  #detailPanel h4 {
+    margin: 0 0 12px 0;
+    text-align: right;
+}
+
+.detail-panel.open {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) scale(1) !important;
+}
+
+    #labelSelect {
+    color: var(--accent);   
+    font-weight: 700;
+    font-size: 15px;
+}
+  :root{
+    --bg:#0b0f14;
+    --panel:#0f1720;
+    --muted:#9aa6b2;
+    --accent:#7c3aed;         
+    --accent-2:#00d4ff;      
+    --card:#0b1116;
+    --glass: rgba(255,255,255,0.03);
+    --success:#27d07d;
+    --danger:#ff6b6b;
+    --glass-border: rgba(255,255,255,0.04);
+    --shadow: 0 8px 24px rgba(2,6,23,0.6);
+    --radius:12px;
+    --glass-blur: 8px;
+    --transition: 300ms cubic-bezier(.2,.9,.2,1);
+    --unread-badge-bg: #ff5a5f;
+  }
+
+.light {
+    --bg:#ffffff;
+    --panel:#ffffff;
+    --muted:#546370;
+    --accent:#2563eb;
+    --accent-2:#06b6d4;
+    --card:#ffffff;
+    --glass: rgba(10,14,20,0.02);
+    --glass-border: rgba(2,6,23,0.06);
+    --shadow: 0 8px 24px rgba(15,23,42,0.06);
+}
+
+.light html, 
+.light body {
+    background: #ffffff !important;
+    background-image: none !important;
+}
+
+
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter, "Segoe UI", Tahoma, Arial; background:linear-gradient(180deg,var(--bg), #071018); color:#e6eef6; transition: background var(--transition), color var(--transition); -webkit-font-smoothing:antialiased}
+  #app{min-height:100vh; display:flex; gap:18px; padding:20px; align-items:flex-start}
+
+  .topbar{
+    position:fixed; right:20px; top:18px; display:flex; gap:10px; z-index:999;
+  }
+  .icon-btn{
+    background:var(--panel); border:1px solid var(--glass-border); padding:8px 12px; border-radius:10px; cursor:pointer;
+    color:var(--muted); box-shadow:var(--shadow); display:inline-flex; gap:8px; align-items:center; transition:all var(--transition);
+  }
+  .icon-btn:hover{ transform:translateY(-3px); color:var(--accent-2); border-color:rgba(124,58,237,0.18) }
+
+  .sidebar{ width:320px; flex-shrink:0; position:relative; transform:translateY(6px); }
+  .main{ flex:1; }
+
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid var(--glass-border);
+    padding:16px; border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:16px;
+  }
+  h3{ margin:0 0 10px 0; color:#2563eb; font-weight:600; font-size:15px }
+
+  .search{
+    width:100%; display:flex; gap:8px; align-items:center;
+  }
+  .search input{
+    width:100%; padding:10px 12px; border-radius:10px; background:transparent; border:1px solid var(--glass-border);
+    color:inherit; outline:none; transition:all var(--transition)
+  }
+  ul#patientsUl{ list-style:none; padding:8px 4px; margin:6px 0 0 0; max-height:66vh; overflow:auto }
+  li.patient{
+    display:flex; gap:10px; align-items:center; padding:10px; border-radius:10px; cursor:pointer; transition:all var(--transition);
+    border:1px solid transparent; position:relative;
+  }
+  li.patient:hover{ background: linear-gradient(90deg, rgba(124,58,237,0.06), rgba(0,212,255,0.02)); transform:translateX(6px); border-color:rgba(124,58,237,0.06) }
+  .avatar{ width:44px; height:44px; border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent-2)); display:flex; align-items:center; justify-content:center; font-weight:700; color:#021019; position:relative }
+  .pname{ font-size:14px; color:#e6f3ff; font-weight:600 }
+  .psub{ font-size:12px; color:var(--muted) }
+
+  .unread-badge{
+    position:absolute; top:8px; left:8px; min-width:20px; height:20px; line-height:20px; padding:0 6px; border-radius:12px;
+    font-size:12px; color:white; background:var(--unread-badge-bg); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,0.4);
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(124,58,237,0.35); }
+    70% { box-shadow: 0 0 0 10px rgba(124,58,237,0); }
+    100% { box-shadow: 0 0 0 0 rgba(124,58,237,0); }
+  }
+  .avatar.pulse { animation: pulse 1.6s infinite; }
+
+  #chatBox{ height:320px; overflow:auto; padding:12px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border-radius:10px; border:1px solid var(--glass-border) }
+.bubble {
+    display: block !important;   
+    width: fit-content;          
+    max-width: 80%;               
+    margin: 10px 0;               
+    padding: 10px 12px;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+    word-break: break-word;
+}
+
+.bubble-left {
+    background: rgba(255,255,255,0.05);
+    margin-right: auto !important;
+    border-top-left-radius: 4px;
+}
+
+.bubble-right {
+    background: linear-gradient(90deg, rgba(124,58,237,0.20), rgba(0,212,255,0.10));
+    color: #021019;
+    margin-left: auto !important;
+    border-top-right-radius: 4px;
+}
+
+.bubble-left{
+    background:#1e293b;   
+    color:#ffffff;        
+    border-top-left-radius:4px;
+    border-radius:12px;
+}
+.bubble-right{
+    background:#7c3aed;   
+    color:#ffffff;        
+    margin-left:auto;
+    border-radius:12px;
+}
+
+  @keyframes pop { from{ transform:translateY(6px); opacity:0 } to{ transform:none; opacity:1 } }
+
+  .chat-controls{ display:flex; gap:8px; margin-top:10px; align-items:center }
+  .chat-controls input[type="text"], .chat-controls input[type="file"], textarea{
+    background:transparent; border:1px solid var(--glass-border); padding:10px; border-radius:10px; color:inherit; outline:none;
+  }
+  .btn{
+    background:linear-gradient(90deg,var(--accent), var(--accent-2)); border:none; padding:10px 14px; border-radius:10px; color:#021019; font-weight:700; cursor:pointer; transition:all var(--transition);
+  }
+  .btn:hover{ transform:translateY(-3px); box-shadow:0 10px 30px rgba(124,58,237,0.12) }
+
+  .logout{
+    background:transparent; color:var(--danger); border:1px solid rgba(255,90,90,0.08); padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700;
+  }
+
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px }
+  .form-grid input, .form-grid textarea, select{ width:100%; padding:10px; border-radius:8px; border:1px solid var(--glass-border); background:transparent; color:green; outline:none }
+
+  canvas{ border-radius:8px; background:transparent }
+
+.detail-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+    width: 450px;
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 20px;
+    z-index: 9999;
+    transition: 0.3s ease;
+}
+
+.detail-panel.open {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+  .detail-panel.open { right: 20px; }
+  .detail-panel h4 { margin-top:0; color:#eaf4ff }
+  .detail-row { display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-bottom:1px dashed rgba(255,255,255,0.02); color:var(--muted) }
+
+  .detail-close { position:absolute; left:10px; top:10px; background:transparent; border:none; color:var(--muted); cursor:pointer; padding:8px; border-radius:8px; }
+
+  @media (max-width:940px){
+    #app{ padding:14px; flex-direction:column }
+    .sidebar{ width:100% }
+    .main{ width:100% }
+    .detail-panel { width:100%; right:-100%; border-radius:12px 12px 0 0; top:auto; bottom:0; height:60vh; left:0; }
+    .detail-panel.open { right:0; left:0; }
+  }
+
+  .muted{ color:var(--muted); font-size:13px }
+
+  .active-chat { outline:2px solid rgba(124,58,237,0.12); border-radius:10px }
+    .doc-name {
+        font-weight: 700;
+        color: #e6eefe;   
+    }
+
+    .light .doc-name {
+        color: #000000;   
+    }
+
+    .light .muted {
+        color: #555 !important;
+    }
+
+    .pname {
+        color: #e6eefe;
+    }
+
+    .light .pname {
+        color: #000000 !important;
+    }
+
+    .psub {
+        color: var(--muted);
+    }
+
+    .light .psub {
+        color: #555 !important;
+    }
+
+#overlayBlur {
+    position: fixed;
+    inset: 0;
+    backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.45);
+    z-index: 999;
+    display: none;
+}
+
+.detail-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+    width: 420px;
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 20px;
+    z-index: 10000;
+    transition: 0.3s ease;
+}
+
+.detail-panel.open {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.08);
+    color: var(--muted);
+}
+
+.detail-close {
+    position:absolute;
+    left:10px;
+    top:10px;
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    cursor:pointer;
+    padding:8px;
+}
+#detailName {
+    color: #ffffff;  
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.light #detailName {
+    color: #000000;
+}
+
+.side-btn {
+    width: 100%;
+    text-align: right;
+    padding: 12px;
+    margin-bottom: 8px;
+    background: var(--panel);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    transition: 0.3s;
+}
+
+.side-btn:hover {
+    background: rgba(124,58,237,0.12);
+    color: #fff;
+    transform: translateX(-5px);
+}
+
+.side-btn i {
+    font-size: 15px;
+    color: var(--accent);
+}
+
+</style>
+</head>
+
+<body>
+  <div class="topbar" role="toolbar" aria-label="controls">
+    <button class="icon-btn" id="notifyPermissionBtn" title="Enable notifications"><i class="fa fa-bell"></i> <span id="notifyText"></span></button>
+    <button class="icon-btn" id="themeBtn" title="Toggle Theme"><i class="fa fa-moon"></i> <span id="themeText"></span></button>
+    <button class="icon-btn" id="langBtn" title="Toggle Language"><i class="fa fa-language"></i> <span id="langText"></span></button>
+  </div>
+
+  <div id="app">
+    <aside class="sidebar">
+
+    <div class="card">
+        <h3 id="menuTitle"></h3>
+
+        <button class="side-btn" onclick="goHome()">
+            <i class="fa fa-home"></i> <span id="btnHome"></span>
+        </button>
+
+        <button class="side-btn" onclick="showDoctorPanel()">
+            <i class="fa fa-user-doctor"></i> <span id="btnDoctorInfo"></span>
+        </button>
+
+        <button class="side-btn" onclick="logout()">
+            <i class="fa fa-sign-out-alt"></i> <span id="btnLogout"></span>
+        </button>
+    </div>
+
+    <div class="card" id="patientsCard">
+        <h3 id="patientsTitle"></h3>
+
+        <div class="search">
+          <input id="searchBox" placeholder="ابحث..." oninput="renderPatientList()">
+          <button class="icon-btn" title="الفلتر" onclick="renderPatientList()"><i class="fa fa-filter"></i></button>
+        </div>
+
+        <ul id="patientsUl"></ul>
+    </div>
+
+    </aside>
+
+
+    <main class="main">
+      <section class="card" aria-labelledby="chatHeader">
+        <h3 id="chatHeader"></h3>
+
+        <div id="chatBox" aria-live="polite"></div>
+
+        <div class="chat-controls" style="margin-top:10px">
+          <input id="msgInput" type="text" placeholder="اكتب رسالة..." style="flex:1" onkeydown="if(event.key==='Enter') sendMessage()">
+          <input
+            type="file"
+            id="imgInput"
+            accept="image/*"
+            style="display:none"
+            onchange="autoSendImage()"
+          />
+
+          <button class="btn" onclick="openUploader()">📷</button>
+          <button class="btn" onclick="sendMessage()"></button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="presTitle">
+        <h3 id="presTitle"></h3>
+
+        <label id="labelSelect"></label>
+        <select id="presPatientSelect" onchange="onPatientSelectChange()" style="width:100%;margin:8px 0 12px 0"></select>
+
+        <div class="form-grid">
+          <input id="medName" placeholder="اسم الدواء">
+          <input id="dosage" placeholder="الجرعة">
+          <input id="timesPerDay" placeholder="مرات يومياً">
+          <input id="durationDays" placeholder="المدة (أيام)">
+        </div>
+
+        <textarea id="presNotes" placeholder="ملاحظات" style="width:100%;height:90px;margin-top:8px"></textarea>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn" onclick="sendPrescription()"></button>
+          <button class="icon-btn" onclick="clearPrescription()"><i class="fa fa-eraser"></i> <span></span></button>
+          <button class="icon-btn" onclick="openDetailPanelForCurrent()" title="فتح صفحة المريض"><i class="fa fa-id-card"></i></button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3 id="chartTitle"></h3>
+
+        <select id="chartMetric" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--glass-border);margin-bottom:8px">
+          <option value=""></option>
+          <option value="glucose">السكر</option>
+          <option value="blood_pressure">الضغط</option>
+          <option value="heart_rate">النبض</option>
+        </select>
+
+        <div style="display:flex;gap:8px">
+          <button class="btn" onclick="showChart()"></button>
+          <button class="icon-btn" onclick="downloadChart()"></button>
+        </div>
+
+        <canvas id="doctorChart" style="width:100%;height:320px;margin-top:12px"></canvas>
+      </section>
+
+    </main>
+  </div>
+
+  <aside id="detailPanel" class="detail-panel" aria-hidden="true">
+    <button class="detail-close" onclick="closeDetailPanel()"><i class="fa fa-times"></i></button>
+    <h4 id="detailName"></h4>
+
+    <div class="detail-row"><div id="lblName"></div><div id="d_name">—</div></div>
+    <div class="detail-row"><div id="lblPhone"></div><div id="d_phone">—</div></div>
+    <div class="detail-row"><div id="lblAddress"></div><div id="d_address">—</div></div>
+</aside>
+
+<script>
+  async function autoSendImage(){
+  const input = document.getElementById('imgInput');
+  const file = input.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const base64data = reader.result.split(',')[1];
+      await eel.send_image(user.id, selectedPatientId, base64data)();
+      input.value = '';
+      await loadMessages();
+    } catch(e){
+      console.error("upload image error", e);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+    function goHome() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function openDoctorInfo() {
+    const infoCard = document.getElementById("statsTitle");
+    if(infoCard){
+        infoCard.scrollIntoView({ behavior: "smooth" });
+    }
+}
+
+function openUploader(){
+  if(!selectedPatientId){
+    alert(TRANSLATIONS[currentLang].alertNoPatient);
+    return;
+  }
+  document.getElementById('imgInput').click();
+}
+
+let user = null;
+let patients = [];
+let selectedPatientId = null;
+let chartInstance = null;
+let unreadMap = {}; 
+let lastMessageIds = {}; 
+let pollIntervalMs = 8000; 
+
+
+const TRANSLATIONS = {
+  ar: {
+    menuTitle: "القائمة",
+    btnHome: "الصفحة الرئيسية",
+    btnDoctorInfo: "معلومات الطبيب",
+    btnLogout: "تسجيل خروج",
+    
+    patientsTitle: "قائمة المرضى",
+    statsTitle: "معلومات الطبيب",
+    chatHeader: "المحادثة",
+    presTitle: "وصف الدواء / خطة علاج",
+    labelSelect: "اختر المريض:",
+    chartTitle: "الرسم البياني",
+
+    placeholderSearch: "ابحث...",
+    placeholderMsg: "اكتب رسالة...",
+    placeholderMed: "اسم الدواء",
+    placeholderDosage: "الجرعة",
+    placeholderTimes: "مرات يومياً",
+    placeholderDuration: "المدة (أيام)",
+    placeholderNotes: "ملاحظات",
+
+    btnSend: "إرسال",
+    btnSendImage: "صورة",
+    btnClear: "مسح",
+    btnSendPres: "حفظ وإرسال للمريض",
+    btnDownload: "تحميل الصورة",
+    btnShow: "عرض",
+
+    selectMetric: "اختر المقياس...",
+    chartMetric_glucose: "السكر",
+    chartMetric_pressure: "الضغط",
+    chartMetric_heart: "النبض",
+
+    langBtn: "عربي",
+    themeDark: "الوضع الداكن",
+    themeLight: "الوضع الفاتح",
+
+    alertNoPatient: "اختر مريض",
+    alertNoMetric: "اختر مقياس",
+    alertNoData: "لا توجد بيانات",
+
+    lblName: "الاسم",
+    lblPhone: "الهاتف",
+    lblAddress: "العنوان",
+    lblPatientsCount: "عدد المرضى:",
+    lblDepartment: "القسم:",
+
+    notifyOn: "الإشعارات مفعّلة",
+    notifyOff: "تفعيل الإشعارات"
+  },
+
+  en: {
+    menuTitle: "Menu",
+    btnHome: "Home",
+    btnDoctorInfo: "Doctor Info",
+    btnLogout: "Logout",
+
+    patientsTitle: "Patients",
+    statsTitle: "Doctor Info",
+    chatHeader: "Chat",
+    presTitle: "Prescription / Treatment Plan",
+    labelSelect: "Select patient:",
+    chartTitle: "Chart",
+
+    placeholderSearch: "Search...",
+    placeholderMsg: "Write a message...",
+    placeholderMed: "Medication name",
+    placeholderDosage: "Dosage",
+    placeholderTimes: "Times per day",
+    placeholderDuration: "Duration (days)",
+    placeholderNotes: "Notes",
+
+    btnSend: "Send",
+    btnSendImage: "Image",
+    btnClear: "Clear",
+    btnSendPres: "Save & Send",
+    btnDownload: "Download Image",
+    btnShow: "Show",
+
+    selectMetric: "Choose metric...",
+    chartMetric_glucose: "Glucose",
+    chartMetric_pressure: "Blood Pressure",
+    chartMetric_heart: "Heart Rate",
+
+    langBtn: "EN",
+    themeDark: "Dark",
+    themeLight: "Light",
+
+    alertNoPatient: "Choose a patient",
+    alertNoMetric: "Choose a metric",
+    alertNoData: "No data found",
+    
+    lblName: "Name",
+    lblPhone: "Phone",
+    lblAddress: "Address",
+    lblPatientsCount: "Patients Count:",
+    lblDepartment: "Department:",
+
+    notifyOn: "Notifications ON",
+    notifyOff: "Enable Notifications"
+  }
+};
+
+let currentLang = 'ar';
+let notificationsEnabled = false;
+
+window.onload = async function(){
+  try { user = JSON.parse(sessionStorage.getItem("user")); } catch(e){ user=null }
+  if(!user || user.role !== "doctor"){ return location.href = "index.html"; }
+
+  const dn = document.getElementById('docName');
+if(dn) dn.innerText = user.fullname || 'Dr —';
+
+const dr = document.getElementById('docRole');
+if(dr) dr.innerText = user.role || 'Doctor';
+
+const di = document.getElementById('docInitial');
+if(di) di.innerText = (user.fullname || 'D').charAt(0).toUpperCase();
+
+  try {
+    patients = await eel.get_patients_for_doctor(user.id)();
+
+  } catch(err){
+    console.error("Failed to fetch dashboard:", err);
+    patients = [];
+  }
+
+  (patients || []).forEach(p => { unreadMap[p.id] = p.unread || 0; lastMessageIds[p.id] = p.last_message_id || 0; });
+
+  renderPatientList();
+  applyThemeFromStorage();
+  applyLang(); 
+
+  startPollingForMessages();
+};
+
+document.getElementById('themeBtn').addEventListener('click', toggleTheme);
+document.getElementById('langBtn').addEventListener('click', toggleLang); 
+document.getElementById('notifyPermissionBtn').addEventListener('click', requestNotificationPermission);
+
+
+function applyThemeFromStorage(){
+  const t = localStorage.getItem('theme') || 'dark';
+  if(t === 'light'){
+    document.documentElement.classList.add('light');
+    document.getElementById('themeText').innerText = TRANSLATIONS[currentLang].themeLight;
+    document.getElementById('themeBtn').querySelector('i').className = 'fa fa-sun';
+  } else {
+    document.documentElement.classList.remove('light');
+    document.getElementById('themeText').innerText = TRANSLATIONS[currentLang].themeDark;
+    document.getElementById('themeBtn').querySelector('i').className = 'fa fa-moon';
+  }
+}
+
+function toggleTheme(){
+  if(document.documentElement.classList.contains('light')){
+    document.documentElement.classList.remove('light');
+    localStorage.setItem('theme','dark');
+  } else {
+    document.documentElement.classList.add('light');
+    localStorage.setItem('theme','light');
+  }
+  applyThemeFromStorage();
+}
+
+function toggleLang(){
+  currentLang = (currentLang === 'ar') ? 'en' : 'ar';
+  applyLang();
+}
+
+function applyLang(){
+  const t = TRANSLATIONS[currentLang];
+
+  document.getElementById("menuTitle").innerText = t.menuTitle;
+  document.getElementById("btnHome").innerText = t.btnHome;
+  document.getElementById("btnDoctorInfo").innerText = t.btnDoctorInfo;
+  document.getElementById("btnLogout").innerText = t.btnLogout;
+  
+  document.getElementById("patientsTitle").innerText = t.patientsTitle;
+  document.getElementById("chatHeader").innerText = t.chatHeader;
+  document.getElementById("presTitle").innerText = t.presTitle;
+  document.getElementById("labelSelect").innerText = t.labelSelect;
+  document.getElementById("chartTitle").innerText = t.chartTitle;
+
+  document.getElementById("searchBox").placeholder = t.placeholderSearch;
+  document.getElementById("msgInput").placeholder = t.placeholderMsg;
+
+  document.getElementById("medName").placeholder = t.placeholderMed;
+  document.getElementById("dosage").placeholder = t.placeholderDosage;
+  document.getElementById("timesPerDay").placeholder = t.placeholderTimes;
+  document.getElementById("durationDays").placeholder = t.placeholderDuration;
+  document.getElementById("presNotes").placeholder = t.placeholderNotes;
+
+  document.querySelector("button.btn[onclick='sendPrescription()']").innerText = t.btnSendPres;
+
+  document.querySelector("button.icon-btn[onclick='clearPrescription()']").querySelector("span").innerText = t.btnClear;
+
+  document.querySelector("button.btn[onclick='showChart()']").innerText = t.btnShow;
+
+  document.querySelector("button.icon-btn[onclick='downloadChart()']").innerText = t.btnDownload;
+
+  document.querySelector("button.btn[onclick='sendMessage()']").innerText = t.btnSend;
+
+  const chartSel = document.getElementById("chartMetric");
+  chartSel.options[0].text = t.selectMetric;
+  chartSel.options[1].text = t.chartMetric_glucose;
+  chartSel.options[2].text = t.chartMetric_pressure;
+  chartSel.options[3].text = t.chartMetric_heart;
+
+  document.getElementById("langText").innerText = t.langBtn;
+
+  document.getElementById("themeText").innerText =
+      document.documentElement.classList.contains("light") ? t.themeLight : t.themeDark;
+      
+  const lblName = document.getElementById("lblName");
+  if(lblName) lblName.innerText = t.lblName;
+
+  const lblPhone = document.getElementById("lblPhone");
+  if(lblPhone) lblPhone.innerText = t.lblPhone;
+
+  const lblAddress = document.getElementById("lblAddress");
+  if(lblAddress) lblAddress.innerText = t.lblAddress;
+
+
+  const docInfoLabels = document.querySelectorAll('#doctorInfoPanel .detail-row > div:first-child');
+  if(docInfoLabels.length >= 2){
+      docInfoLabels[0].innerText = t.lblPatientsCount;
+      docInfoLabels[1].innerText = t.lblPhone;
+      docInfoLabels[2].innerText = (currentLang === 'ar' ? 'البريد:' : 'Email:'); 
+      docInfoLabels[3].innerText = t.lblAddress;
+      docInfoLabels[4].innerText = t.lblDepartment;
+  }
+  
+  if(currentLang === "ar"){
+    document.documentElement.dir = "rtl";
+    document.documentElement.lang = "ar";
+  } else {
+    document.documentElement.dir = "ltr";
+    document.documentElement.lang = "en";
+  }
+
+  populatePatientSelect(); 
+  updateNotifyBtnText();  
+}
+
+function renderPatientList(){
+  const ul = document.getElementById('patientsUl');
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  ul.innerHTML = '';
+
+  (patients || []).filter(p => (p.fullname||'').toLowerCase().includes(q)).forEach(p => {
+    const li = document.createElement('li');
+    li.className = 'patient';
+    li.dataset.pid = p.id;
+
+    const unreadCount = unreadMap[p.id] || 0;
+    const badgeHtml = unreadCount ? `<div class="unread-badge">${unreadCount}</div>` : '';
+
+    const avatarPulseClass = (unreadCount > 0) ? 'avatar pulse' : 'avatar';
+
+    li.innerHTML = `
+      <div class="${avatarPulseClass}">${(p.fullname||'?').slice(0,1).toUpperCase()}</div>
+      <div style="flex:1">
+        <div class="pname">${p.fullname}</div>
+        <div class="psub">${p.phone || ''}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="icon-btn" title="Open" onclick="openChatWithId(${p.id}); event.stopPropagation();"><i class="fa fa-comment"></i></button>
+        <button class="icon-btn" title="Details" onclick="openDetailPanelFor(${p.id}); event.stopPropagation();"><i class="fa fa-id-card"></i></button>
+      </div>
+      ${badgeHtml}
+    `;
+    li.addEventListener('click', () => openChatWithId(p.id));
+    ul.appendChild(li);
+  });
+}
+
+function populatePatientSelect(){
+  const sel = document.getElementById('presPatientSelect');
+
+  sel.innerHTML = `
+    <option value="">
+      ${currentLang === 'ar' ? 'اختر...' : 'Choose...'}
+    </option>
+  `;
+
+  (patients || []).forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.fullname;
+    sel.appendChild(opt);
+  });
+}
+
+async function openChatWithId(id){
+  const p = patients.find(x => x.id == id);
+  if(!p) return;
+  selectedPatientId = p.id;
+  document.getElementById('presPatientSelect').value = p.id;
+  document.getElementById('chatHeader').innerText = (currentLang === 'ar' ? 'محادثة مع: ' : 'Chat with: ') + p.fullname;
+
+  unreadMap[p.id] = 0;
+  renderPatientList();
+
+  highlightActivePatient(id);
+
+  await loadMessages();
+}
+
+function highlightActivePatient(id){
+  document.querySelectorAll('li.patient').forEach(li=>{
+    if(li.dataset.pid == id) li.classList.add('active-chat'); else li.classList.remove('active-chat');
+  });
+}
+
+async function loadMessages(){
+  if(!selectedPatientId) {
+    document.getElementById('chatBox').innerHTML = `<div class="muted">${currentLang === 'ar' ? 'اختر مريض لعرض المحادثة' : 'Select a patient to view chat'}</div>`;
+    return;
+  }
+  try {
+    const msgs = await eel.get_messages_between(user.id, selectedPatientId)();
+    const box = document.getElementById('chatBox');
+
+    box.innerHTML = msgs.map(m => {
+      const isImage = m.is_image == 1;
+      const content = isImage ? `<img class="chat-img" src="data:image/png;base64,${m.content}" style="max-width:260px;border-radius:8px;display:block">` : escapeHtml(m.content);
+      const cls = (m.sender_id == user.id) ? 'bubble bubble-right' : 'bubble bubble-left';
+      return `<div class="${cls}">${content}<div style="font-size:11px;color:var(--muted);margin-top:6px">${new Date(m.created_at).toLocaleString()}</div></div>`;
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+
+    if(msgs && msgs.length){
+      lastMessageIds[selectedPatientId] = msgs[msgs.length - 1].id || lastMessageIds[selectedPatientId];
+    }
+  } catch(err){
+    console.error("loadMessages error:", err);
+  }
+}
+
+async function sendMessage(){
+  const input = document.getElementById('msgInput');
+  const t = input.value.trim();
+  if(!t) return;
+  if(!selectedPatientId) return alert(TRANSLATIONS[currentLang].alertNoPatient);
+  try {
+    await eel.send_message(user.id, selectedPatientId, t, 0)();
+    input.value = '';
+    await loadMessages();
+  } catch(err){
+    console.error("sendMessage error:", err);
+  }
+}
+
+let pollHandle = null;
+function startPollingForMessages(){
+  checkForNewMessages();
+
+  pollHandle = setInterval(checkForNewMessages, pollIntervalMs);
+}
+
+async function checkForNewMessages(){
+  try {
+    const summary = await eel.get_unread_summary()();
+    if(summary && Array.isArray(summary)){
+      summary.forEach(s => {
+        const pid = s.patient_id;
+        const newCount = s.unread_count || 0;
+        const lastId = s.last_message_id || 0;
+        const lastContent = s.last_message_content || '';
+        const lastIsImage = s.last_message_is_image || 0;
+
+        const prev = unreadMap[pid] || 0;
+        unreadMap[pid] = newCount;
+
+        if(lastId && lastId !== lastMessageIds[pid]){
+          if(notificationsEnabled){
+            showDesktopNotificationForPatient(pid, lastContent, lastIsImage);
+          }
+          lastMessageIds[pid] = lastId;
+        }
+      });
+      renderPatientList();
+    } else {
+      await fallbackCheckPerPatient();
+    }
+  } catch(err){
+    await fallbackCheckPerPatient();
+  }
+}
+
+async function fallbackCheckPerPatient(){
+  try {
+    for(const p of patients || []){
+      try {
+        const last = await eel.get_last_message_info(p.id)(); 
+        if(last){
+          const lastId = last.last_message_id || 0;
+          const prevId = lastMessageIds[p.id] || 0;
+          if(lastId && lastId !== prevId){
+            unreadMap[p.id] = (unreadMap[p.id] || 0) + 1;
+            lastMessageIds[p.id] = lastId;
+            if(notificationsEnabled){
+              showDesktopNotificationForPatient(p.id, last.last_message_content || '', last.last_message_is_image || 0);
+            }
+            renderPatientList();
+          }
+        }
+      } catch(_) {  }
+    }
+  } catch(err){
+    console.error("fallbackCheckPerPatient error:", err);
+  }
+}
+
+function showDesktopNotificationForPatient(patientId, content, isImage){
+  const p = patients.find(x => x.id == patientId);
+  const title = p ? (currentLang==='ar' ? `رسالة من ${p.fullname}` : `Message from ${p.fullname}`) : (currentLang==='ar' ? 'رسالة جديدة' : 'New message');
+  let body = '';
+  if(isImage) body = currentLang==='ar' ? '📷 صورة' : '📷 Image';
+  else body = (typeof content === 'string' && content.length>120) ? content.slice(0,120)+'...' : content;
+
+  try {
+    const n = new Notification(title, {
+      body,
+      icon: '/assets/notification-icon.png' 
+    });
+    n.onclick = function(ev){
+      window.focus();
+      openChatWithId(patientId);
+      n.close();
+    };
+  } catch (e){
+    console.warn("Notification failed:", e);
+  }
+}
+
+async function requestNotificationPermission(){
+  if(!("Notification" in window)){
+    alert(currentLang==='ar' ? "المتصفح لا يدعم الإشعارات" : "This browser does not support notifications");
+    return;
+  }
+  try {
+    let p = await Notification.requestPermission();
+    notificationsEnabled = (p === 'granted');
+    updateNotifyBtnText();
+    if(notificationsEnabled) alert(currentLang==='ar' ? "تم تفعيل الإشعارات" : "Notifications enabled");
+  } catch(e){
+    console.error("requestNotificationPermission", e);
+  }
+}
+
+function updateNotifyBtnText(){
+  const t = TRANSLATIONS[currentLang];
+  const txt = notificationsEnabled ? t.notifyOn : t.notifyOff;
+  document.getElementById('notifyText').innerText = txt;
+}
+
+function openDetailPanelFor(id){
+  const p = patients.find(x => x.id == id);
+  if(!p) return;
+  selectedPatientId = id;
+  
+  applyLang(); 
+  populateDetailPanel(p);
+  
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('detailPanel').setAttribute('aria-hidden','false');
+}
+function openDetailPanelForCurrent(){
+  if(!selectedPatientId) return alert(TRANSLATIONS[currentLang].alertNoPatient);
+  openDetailPanelFor(selectedPatientId);
+}
+function closeDetailPanel(){
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('detailPanel').setAttribute('aria-hidden','true');
+}
+function populateDetailPanel(p){
+  document.getElementById('detailName').innerText = p.fullname || '—';
+  document.getElementById('d_name').innerText = p.fullname || '—';
+  document.getElementById('d_phone').innerText = p.phone || '—';
+  document.getElementById('d_dob').innerText = p.dob || '—';
+  document.getElementById('d_address').innerText = p.address || '—';
+  document.getElementById('d_notes').innerText = p.notes || '—';
+
+  (async ()=>{
+    try {
+      const vitals = await eel.get_patient_vitals_summary(p.id)();
+      const vitalsDiv = document.getElementById('detailVitals');
+      vitalsDiv.innerHTML = '';
+      if(vitals){
+        Object.keys(vitals).forEach(k=>{
+          const val = vitals[k] !== undefined ? vitals[k] : '—';
+          const row = document.createElement('div');
+          row.style.display='flex'; row.style.justifyContent='space-between'; row.style.padding='6px 0';
+          row.innerHTML = `<div style="color:var(--muted)">${k}</div><div style="font-weight:700">${val}</div>`;
+          vitalsDiv.appendChild(row);
+        });
+      }
+    } catch(e){ console.warn("vitals fetch failed", e); }
+  })();
+}
+
+function onPatientSelectChange(){
+  selectedPatientId = parseInt(document.getElementById('presPatientSelect').value || 0);
+}
+
+async function sendPrescription(){
+  if(!selectedPatientId) return alert(TRANSLATIONS[currentLang].alertNoPatient);
+  const medName = document.getElementById('medName').value.trim();
+  const dosage = document.getElementById('dosage').value.trim();
+  const timesPerDay = document.getElementById('timesPerDay').value.trim();
+  const durationDays = document.getElementById('durationDays').value.trim();
+  const presNotes = document.getElementById('presNotes').value.trim();
+
+  try {
+    const r = await eel.send_prescription(user.id, selectedPatientId, medName, dosage, timesPerDay, durationDays, presNotes)();
+    if(r && r.ok){
+      alert(TRANSLATIONS[currentLang].okPrescription);
+      clearPrescription();
+    } else {
+      alert(TRANSLATIONS[currentLang].errPrescription + (r && r.error ? r.error : 'unknown'));
+    }
+  } catch(err){
+    console.error("sendPrescription error:", err);
+  }
+}
+
+function clearPrescription(){
+  document.getElementById('medName').value = '';
+  document.getElementById('dosage').value = '';
+  document.getElementById('timesPerDay').value = '';
+  document.getElementById('durationDays').value = '';
+  document.getElementById('presNotes').value = '';
+}
+
+async function showChart(){
+  if(!selectedPatientId) return alert(TRANSLATIONS[currentLang].alertNoPatient);
+  const metric = document.getElementById('chartMetric').value;
+  if(!metric) return alert(TRANSLATIONS[currentLang].alertNoMetric);
+
+  try {
+    let labels = [];
+    let datasets = [];
+
+    if(metric === 'blood_pressure'){
+      let sys = await eel.get_vitals(selectedPatientId,"blood_pressure_sys")();
+      let dia = await eel.get_vitals(selectedPatientId,"blood_pressure_dia")();
+
+      if((!sys || !sys.length) && (!dia || !dia.length)) return alert(TRANSLATIONS[currentLang].alertNoData);
+
+      labels = sys.length ? sys.map(v => new Date(v.created_at).toLocaleString()) : dia.map(v=> new Date(v.created_at).toLocaleString());
+
+      datasets = [
+        { label: currentLang === 'ar' ? 'SYS ' : 'SYS (systolic)', data: sys.map(v=>v.value), borderColor: getColor(0), tension:0.2, fill:false },
+        { label: currentLang === 'ar' ? 'DIA ' : 'DIA (diastolic)', data: dia.map(v=>v.value), borderColor: getColor(1), tension:0.2, fill:false }
+      ];
+    } else {
+      let data = await eel.get_vitals(selectedPatientId, metric)();
+      if(!data || !data.length) return alert(TRANSLATIONS[currentLang].alertNoData);
+      labels = data.map(v => new Date(v.created_at).toLocaleString());
+      datasets = [{ label: metric, data: data.map(v=>v.value), borderColor: getColor(2), tension:0.2, fill:false }];
+    }
+
+    if(chartInstance) chartInstance.destroy();
+    const ctx = document.getElementById('doctorChart').getContext('2d');
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        plugins: { legend:{ labels:{ color: getTextColor() } }},
+        scales: {
+          x:{ ticks:{ color: getTextColor() }, grid:{ color: 'rgba(255,255,255,0.03)' } },
+          y:{ ticks:{ color: getTextColor() }, grid:{ color: 'rgba(255,255,255,0.03)' } }
+        }
+      }
+    });
+
+  } catch(err){
+    console.error("showChart error:", err);
+  }
+}
+
+function getColor(i){
+  const arr = ['#7c3aed','#00d4ff','#27d07d','#ffb86b'];
+  return arr[i % arr.length];
+}
+function getTextColor(){
+  return document.documentElement.classList.contains('light') ? '#071018' : '#e6eef6';
+}
+
+function downloadChart(){
+  if(!chartInstance) return;
+  const url = document.getElementById('doctorChart').toDataURL('image/png', 1.0);
+  const a = document.createElement('a');
+  a.href = url; a.download = `chart_${Date.now()}.png`; a.click();
+}
+
+function escapeHtml(text){
+  if(!text) return '';
+  return String(text).replace(/[&<>"'`=\/]/g, function(s){ return ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'
+  })[s]});
+}
+
+function logout(){
+  sessionStorage.clear();
+  location.href = "index.html";
+}
+
+window.addEventListener('beforeunload', ()=> {
+  if(pollHandle) clearInterval(pollHandle);
+});
+
+window._unreadMap = unreadMap;
+window._lastMessageIds = lastMessageIds;
+
+function openDetailPanelFor(id){
+    const p = patients.find(x => x.id == id);
+    if(!p) return;
+
+    applyLang(); 
+
+    document.getElementById('detailName').innerText = p.fullname || '—';
+    document.getElementById('d_name').innerText = p.fullname || '—';
+    document.getElementById('d_phone').innerText = p.phone || '—';
+    document.getElementById('d_address').innerText = p.address || '—';
+
+    document.getElementById('overlayBlur').style.display = "block";
+    document.getElementById('detailPanel').classList.add('open');
+}
+
+function closeDetailPanel(){
+    document.getElementById('detailPanel').classList.remove('open');
+    document.getElementById('overlayBlur').style.display = "none";
+}
+async function showDoctorPanel() {
+    const info = await eel.get_doctor_info(user.id)();
+
+    if (!info.ok) return alert("خطأ في تحميل البيانات");
+
+    const d = info.doctor;
+    
+    applyLang();
+
+    document.getElementById("docInfoName").innerText = d.fullname;
+    document.getElementById("docInfoPatients").innerText = d.total_patients;
+    document.getElementById("docInfoPhone").innerText = d.phone || "—";
+    document.getElementById("docInfoEmail").innerText = d.email || "—";
+    document.getElementById("docInfoAddress").innerText = d.address || "—";
+    document.getElementById("docInfoDept").innerText = d.dept_id || "—";
+    document.getElementById("overlayBlur").style.display = "block";
+    document.getElementById("doctorInfoPanel").classList.add("open");
+}
+
+function closeDoctorPanel() {
+    document.getElementById("doctorInfoPanel").classList.remove("open");
+    document.getElementById("overlayBlur").style.display = "none";
+}
+
+</script>
+<div id="overlayBlur"></div>
+<div id="doctorInfoPanel" class="detail-panel">
+    <button class="detail-close" onclick="closeDoctorPanel()"><i class="fa fa-times"></i></button>
+
+    <h4 id="docInfoName">—</h4>
+
+    <div class="detail-row"><div>عدد المرضى:</div><div id="docInfoPatients">—</div></div>
+    <div class="detail-row"><div>الهاتف:</div><div id="docInfoPhone">—</div></div>
+    <div class="detail-row"><div>البريد:</div><div id="docInfoEmail">—</div></div>
+    <div class="detail-row"><div>العنوان:</div><div id="docInfoAddress">—</div></div>
+    <div class="detail-row"><div>القسم:</div><div id="docInfoDept">—</div></div>
+</div>
+
+</body>
+</html>

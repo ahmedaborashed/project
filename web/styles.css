@@ -1,0 +1,40 @@
+:root{ --card:#fff; --muted:#6b7280; --accent:#0b5cff; --border:#e5e7eb }
+html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,Segoe UI;background:white;color:#111;direction:rtl}
+.container{width:100%;max-width:100%;margin:12px auto;padding:24px}
+.card{background:var(--card);border:1px solid var(--border);padding:18px;border-radius:8px;margin-bottom:14px;box-shadow:0 1px 3px rgba(16,24,40,0.03)}
+h1{margin:0 0 8px;font-size:22px}
+h3{margin:0 0 10px;font-size:16px}
+input,select,button,textarea{display:block;padding:10px;margin:6px 0;border:1px solid var(--border);border-radius:6px;font-size:14px}
+.row{display:flex;gap:8px}
+.row button{flex:1}
+.muted{color:var(--muted);font-size:13px;margin-top:6px}
+.btn{background:var(--accent);color:white;border:none;padding:10px 12px;border-radius:6px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+.btn.small{padding:6px 8px;margin-left:6px;font-size:13px}
+.btn.danger{background:#dc2626}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border:1px solid var(--border);padding:8px;text-align:right}
+.table-wrapper{overflow:auto}
+.login-wrap{height:100vh;display:flex;align-items:center;justify-content:center;background:white}
+.login-card{max-width:420px;width:100%;margin:0;padding:24px;border-radius:8px;box-shadow:0 6px 18px rgba(2,6,23,0.08)}
+.modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:9999}
+.modal-content{background:white;padding:18px;border-radius:8px;min-width:320px;max-width:520px;border:1px solid var(--border)}
+.bubble{max-width:70%;margin:8px 0;padding:8px;border-radius:12px;display:inline-block;clear:both}
+.bubble-left{background:#f1f0f0;color:#111;border-top-left-radius:4px;float:left;align-self:flex-start}
+.bubble-right{background:#cfe9ff;color:#002b5c;border-top-right-radius:4px;float:right;align-self:flex-end}
+.bubble-text{font-size:14px;margin-bottom:6px;word-wrap:break-word}
+.bubble-meta{font-size:11px;opacity:0.7;text-align:right}
+#chatWindow .bubble{display:block}
+.bubble{
+    max-width:72%;
+    padding:10px 14px;
+    border-radius:12px;
+    word-break:break-word;
+}
+.bubble-left{ background:#f1f1f1;color:#111; align-self:flex-start; }
+.bubble-right{ background:#0d6efd;color:#fff; align-self:flex-end; }
+
+.btn{ padding:8px 12px;border-radius:8px;border:none;background:#0d6efd;color:#fff;cursor:pointer }
+.btn.ghost{ background:transparent;border:1px solid #ddd;color:#333 }
+.btn.danger{ background:#e53935 }
+.card{ background:#fff;border-radius:8px;padding:12px;border:1px solid #eee }

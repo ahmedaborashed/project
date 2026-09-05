@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="ar" id="html-root">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title id="title-text">تسجيل الدخول</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js"></script>
+
+<style>
+
+:root {
+  --bg-color: #f5f6ff;
+  --box-bg: #ffffff;
+  --text-color: #222;
+  --border-color: #4f46e5;
+  --input-bg: #fff;
+  --input-border: #ccc;
+}
+
+.dark {
+  --bg-color: #0f0f16;
+  --box-bg: #1b1b29;
+  --text-color: #f1f1f1;
+  --border-color: #6c63ff;
+  --input-bg: #2b2b3c;
+  --input-border: #555;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  font-family: "Tajawal", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-color);
+  transition: .4s;
+}
+
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: var(--box-bg);
+  border: 2px solid var(--border-color);
+  color: var(--text-color);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  z-index: 200;
+  transition: .3s;
+}
+
+.lang-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--box-bg);
+  border: 2px solid var(--border-color);
+  color: var(--text-color);
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  z-index: 200;
+  transition: .3s;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: radial-gradient(circle, rgba(180,200,255,0.18), transparent 70%);
+  filter: blur(40px);
+  animation: fogMove 15s ease-in-out infinite;
+  z-index: -10;
+}
+
+@keyframes fogMove {
+  0% { transform: translate(0,0); }
+  50% { transform: translate(60px, -40px); }
+  100% { transform: translate(0,0); }
+}
+
+.ecg {
+  position: fixed;
+  bottom: 180px; 
+  width: 100%;
+  height: 100px;
+  z-index: -5;
+  opacity: .8;
+}
+
+.ecg svg {
+  width: 200%; 
+  animation: ecgMove 10s linear infinite;
+}
+
+@keyframes ecgMove {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.moving-lines .line {
+  position: absolute;
+  width: 100vw;            
+  height: 2px;
+  background: rgba(0,0,0,0.06);
+  animation: moveLines 10s linear infinite;
+  left: 0;                 
+}
+
+
+.moving-lines .line:nth-child(1) { top: 25%; }
+.moving-lines .line:nth-child(2) { top: 45%; animation-duration: 11s;}
+.moving-lines .line:nth-child(3) { top: 65%; animation-duration: 10s;}
+.moving-lines .line:nth-child(4) { top: 85%; animation-duration: 14s;}
+
+@keyframes moveLines {
+  0% { transform: translateX(-20%); }
+  100% { transform: translateX(20%); }
+}
+
+.login-container {
+  width: 420px;
+  padding: 32px;
+  border-radius: 20px;
+  background: var(--box-bg);
+  border: 4px solid var(--border-color);
+  box-shadow: 0 0 30px rgba(0,0,0,0.12);
+  text-align: center;
+  color: var(--text-color);
+  z-index: 20;
+  transition: .4s;
+}
+
+h2 {
+  margin: 0 0 25px;
+  font-size: 28px;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.input-group i {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-color);
+}
+
+input {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: .3s;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;             
+  margin-bottom: 6px;  
+}
+
+.label-row i {
+  font-size: 18px;
+  color: var(--text-color);
+}
+
+.label-row h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+input:focus {
+  border-color: var(--border-color);
+  outline: none;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  border-radius: 25px;
+  border: none;
+  color: white;
+  background: linear-gradient(to right, #667eea, #764ba2);
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.message {
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  display: none;
+}
+
+.error {
+  background: #ffe5e8;
+  color: #ff4757;
+}
+
+.success {
+  background: #e5ffee;
+  color: #2ed573;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 500;
+  display: none;
+}
+
+.loading-spinner {
+  font-size: 55px;
+  color: #fff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="theme-toggle" onclick="toggleTheme()">🌙 Dark</div>
+
+<div class="lang-toggle" onclick="toggleLang()">🌐 عربي</div>
+
+<div class="moving-lines">
+  <div class="line"></div>
+  <div class="line"></div>
+  <div class="line"></div>
+  <div class="line"></div>
+</div>
+
+<div class="ecg">
+  <svg viewBox="0 0 1200 80">
+    <polyline fill="none" stroke="#667eea" stroke-width="4"
+      points="
+      0,40 50,40 80,10 110,70 150,40 200,40 230,20 260,60 300,40 350,40 380,15 410,65 450,40 500,40
+      550,40 580,10 610,70 650,40 700,40 730,20 760,60 800,40 850,40 880,15 910,65 950,40 1000,40
+      1050,10 1080,70 1120,40 1150,40
+      " />
+  </svg>
+</div>
+
+<div class="login-container">
+  
+  <h2 id="login-title">تسجيل الدخول</h2>
+
+<div class="input-group">
+
+  <div class="label-row">
+    <i class="fa fa-user"></i>
+    <h2 id="label-user">اسم المستخدم</h2>
+  </div>
+
+  <input id="username" placeholder="اسم المستخدم">
+
+</div>
+
+
+<div class="input-group">
+
+  <div class="label-row">
+    <i class="fa fa-lock"></i>
+    <h2 id="label-pass">كلمة المرور</h2>
+  </div>
+
+  <input id="password" type="password" placeholder="كلمة المرور">
+
+</div>
+
+
+  <button onclick="doLogin()" id="login-btn">تسجيل الدخول</button>
+
+  <div id="msg" class="message"></div>
+</div>
+
+<script src="/eel.js"></script>
+<script src="app.js"></script>
+
+<script>
+
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+
+  const btn = document.querySelector(".theme-toggle");
+
+  if (document.body.classList.contains("dark")) {
+    btn.textContent = "☀️ Light";
+    localStorage.setItem("theme", "dark");
+  } else {
+    btn.textContent = "🌙 Dark";
+    localStorage.setItem("theme", "light");
+  }
+}
+
+if (localStorage.getItem("theme") === "dark") {
+  document.body.classList.add("dark");
+  document.querySelector(".theme-toggle").textContent = "☀️ Light";
+}
+
+let currentLang = "ar";
+
+function toggleLang() {
+  const html = document.getElementById("html-root");
+  const langBtn = document.querySelector(".lang-toggle");
+
+  if (currentLang === "ar") {
+    currentLang = "en";
+    html.setAttribute("lang", "en");
+    langBtn.textContent = "🌐 English";
+    setEnglish();
+  } else {
+    currentLang = "ar";
+    html.setAttribute("lang", "ar");
+    langBtn.textContent = "🌐 عربي";
+    setArabic();
+  }
+}
+
+function setEnglish() {
+  document.getElementById("title-text").textContent = "Login";
+  document.getElementById("login-title").textContent = "Login";
+  document.getElementById("username").placeholder = "Username";
+  document.getElementById("password").placeholder = "Password";
+  document.getElementById("login-btn").textContent = "Login";
+  document.getElementById("label-user").textContent = "Username";
+  document.getElementById("label-pass").textContent = "Password";
+}
+
+
+function setArabic() {
+  document.getElementById("title-text").textContent = "تسجيل الدخول";
+  document.getElementById("login-title").textContent = "تسجيل الدخول";
+  document.getElementById("username").placeholder = "اسم المستخدم";
+  document.getElementById("password").placeholder = "كلمة المرور";
+  document.getElementById("login-btn").textContent = "تسجيل الدخول";
+  document.getElementById("label-user").textContent = "اسم المستخدم";
+  document.getElementById("label-pass").textContent = "كلمة المرور";
+}
+
+</script>
+
+<div id="loadingOverlay" class="loading-overlay">
+    <i class="fa fa-spinner loading-spinner"></i>
+</div>
+
+</body>
+</html>

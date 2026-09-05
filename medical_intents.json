@@ -1,0 +1,64 @@
+[
+  {
+    "body_part": "head",
+    "patterns": ["وجع", "ألم", "صداع", "دوخة", "دوار"],
+    "responses": {
+      "ar": "هل الصداع مستمر ولا بييجي على فترات؟",
+      "en": "Is the headache constant or does it come and go?"
+    },
+    "level": "warning"
+  },
+  {
+  "body_part": "back",
+  "patterns": ["وجع", "ألم", "شد", "وجع في الظهر"],
+  "responses": {
+    "ar": "هل الألم في الظهر أسفل ولا أعلى؟ وبيزيد مع الحركة؟",
+    "en": "Is the back pain in the upper or lower back? Does it worsen with movement?"
+  },
+  "level": "warning"
+},
+{
+  "body_part": "chest",
+  "patterns": [
+    "وجع",
+    "ألم",
+    "شد",
+    "كتمة",
+    "ضيق نفس",
+    "نهجان",
+    "حرقان",
+    "مغص",
+    "غثيان",
+    "خفقان",
+    "ألم في الصدر",
+    "ألم في البطن",
+    "ألم في القلب",
+    "مش قادر أتنفس",
+    "تعب في الصدر",
+    "وجع في البطن"
+  ],
+  "responses": {
+    "ar": "هل الألم في الجزء الأمامي مستمر ولا بييجي على فترات؟ وهل مصحوب بضيق نفس، خفقان، أو مغص؟",
+    "en": "Is the pain in the front body constant or intermittent? Is it associated with shortness of breath, palpitations, or abdominal cramps?"
+  },
+  "level": "warning"
+},
+  {
+    "body_part": "arms",
+    "patterns": ["وجع", "ألم", "تنميل", "ضعف"],
+    "responses": {
+      "ar": "هل في تنميل أو ضعف في الذراع؟",
+      "en": "Do you feel numbness or weakness in the arm?"
+    },
+    "level": "warning"
+  },
+  {
+    "body_part": "leg",
+    "patterns": ["وجع", "ألم", "مش قادر أمشي", "شد"],
+    "responses": {
+      "ar": "هل الألم في الساق مستمر ولا بييجي ويروح؟",
+      "en": "Is the leg pain constant or intermittent?"
+    },
+    "level": "warning"
+  }
+]

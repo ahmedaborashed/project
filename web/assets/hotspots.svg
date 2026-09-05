@@ -1,0 +1,22 @@
+<svg viewBox="0 0 400 900" xmlns="http://www.w3.org/2000/svg">
+  <!-- HEAD -->
+  <path data-part="head" d="M170 20 C140 40,140 90,170 120 L230 120 C260 90,260 40,230 20 Z"/>
+
+  <!-- NECK -->
+  <path data-part="neck" d="M185 120 L215 120 L225 150 L175 150 Z"/>
+
+  <!-- CHEST -->
+  <path data-part="chest" d="M120 150 C100 200,100 300,140 350 L260 350 C300 300,300 200,280 150 Z"/>
+
+  <!-- BACK (replaced abdomen) -->
+  <path data-part="back" d="M140 350 L260 350 L250 520 L150 520 Z"/>
+
+  <!-- ARMS -->
+  <path data-part="arms" d="M80 170 L120 170 L120 420 L80 420 Z"/>
+  <path data-part="arms" d="M280 170 L320 170 L320 420 L280 420 Z"/>
+
+  <!-- LEGS -->
+  <path data-part="leg" d="M150 520 L190 520 L180 850 L140 850 Z"/>
+  <path data-part="leg" d="M210 520 L250 520 L260 850 L220 850 Z"/>
+
+</svg>

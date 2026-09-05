@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title data-i18n="dashboard">لوحة صاحب المستشفى</title>
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --panel:#0f1720;
+      --text:#e6eef6;
+      --muted:#9aa6b2;
+      --accent:#7c3aed;
+      --border:#1f2937;
+      --card:#0b1116;
+    }
+    .light{
+      --bg:#ffffff;
+      --panel:#ffffff;
+      --text:#111827;
+      --muted:#555;
+      --accent:#2563eb;
+      --border:#e5e7eb;
+      --card:#ffffff;
+    }
+    body {
+      background:var(--bg);
+      color:var(--text);
+      font-family: Inter, "Segoe UI", Tahoma, Arial;
+      transition: 0.3s;
+      direction: rtl; 
+    }
+    .layout { display:flex; height:100vh; gap:12px; padding:12px; box-sizing:border-box; }
+    .sidebar { width:260px; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:12px; box-shadow:0 2px 6px rgba(0,0,0,0.03); overflow:auto; transition: 0.3s }
+    .sidebar h2 { margin:0 0 8px 0; font-size:18px }
+
+    .menu-item { padding:10px;border-radius:6px; cursor:pointer; margin-bottom:6px; transition: 0.3s; }
+    .menu-item.active { background:var(--accent); color:white }
+
+    .side-btn {
+      position: relative;
+      overflow: hidden;
+    }
+    .side-btn::after {
+      content: "";
+      position: absolute;
+      right: -100%; 
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(124,58,237,0.15),
+        transparent
+      );
+      transition: 0.4s;
+    }
+    html[dir="rtl"] .side-btn:hover::after {
+      right: 100%; 
+    }
+    html[dir="ltr"] .side-btn::after {
+        left: -100%;
+        right: auto;
+    }
+    html[dir="ltr"] .side-btn:hover::after {
+      left: 100%;
+    }
+    .side-btn:hover {
+      background: rgba(124,58,237,0.1);
+      transform: translateX(-4px);
+    }
+    html[dir="ltr"] .side-btn:hover {
+        transform: translateX(4px);
+    }
+    .side-btn.active:hover {
+        background: var(--accent);
+        transform: none;
+    }
+
+    .main { flex:1; overflow:auto }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px; box-shadow:0 2px 6px rgba(0,0,0,0.03); transition: 0.3s }
+    table { width:100%; border-collapse:collapse; font-size:14px }
+    th,td { padding:10px; border-bottom:1px solid var(--border); text-align:right }
+    h4 { color: var(--muted); }
+
+    .btn { padding:8px 14px; border-radius:6px; cursor:pointer; border:none; font-size:14px; transition: 0.2s }
+    .btn:hover { opacity: 0.9; }
+    .btn.small { padding:6px 10px; font-size:12px }
+    .btn.primary { background:var(--accent); color:white }
+    .btn.edit { background:#0984e3; color:white }
+    .btn.reset { background:#00b894; color:white }
+    .btn.danger { background:#d63031; color:white }
+    .btn.accept { background:#00a86b; color:white }
+
+    .side-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; z-index:50; transition:opacity .3s ease; opacity: 0; }
+    .side-modal-backdrop.open { display:block; opacity: 1; }
+
+    .side-modal { position:fixed; right:0; top:0; height:100%; width:420px; background:var(--panel);
+      box-shadow:-8px 0 24px rgba(0,0,0,0.25);
+      transform:translateX(100%); transition:transform .3s ease, opacity .3s ease;
+      z-index:60; padding:18px; overflow:auto; direction:rtl; 
+      opacity: 0;
+    }
+    .side-modal.open { transform:translateX(0); opacity: 1; }
+    html[dir="ltr"] .side-modal { right:auto; left:0; transform:translateX(-100%); }
+    html[dir="ltr"] .side-modal.open { transform:translateX(0); }
+
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px }
+    .modal-row { margin-bottom:12px }
+    label { display:block; font-size:13px; margin-bottom:6px; color:var(--muted) }
+    input[type="text"], input[type="password"], select, textarea {
+      width:100%; padding:10px; border:1px solid var(--border);
+      border-radius:6px; box-sizing:border-box;
+      background:var(--bg); color:var(--text); transition: 0.3s;
+    }
+    .modal-actions { display:flex; gap:8px; margin-top:18px }
+    
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .tab-content {
+      display: none;
+      animation: fadeSlideIn 0.35s ease forwards;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    .pop-in {
+      animation: popIn 0.35s ease;
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    #resetModal.open {
+      transform: translateX(-50%) translateY(-50%) !important;
+      opacity: 1 !important;
+    }
+
+    #resetModal {
+      position: fixed !important;
+      top: 50% !important;
+      left: 50% !important;
+      right: auto !important;
+      bottom: auto !important;
+      transform: translate(-50%, -50%) !important;
+      width: 360px;
+      height: auto;
+      opacity: 0;
+      z-index: 70;
+    }
+
+    #resetModal.open {
+      opacity: 1 !important;
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="topbar" style="position:fixed;left:20px;top:20px;z-index:999;display:flex;gap:10px">
+    <button class="btn small" onclick="toggleTheme()">🌓 <span id="themeText">Dark</span></button>
+    <button class="btn small" onclick="toggleLang()">🌐 <span id="langText">عربي</span></button>
+  </div>
+  <div class="layout">
+
+    <aside class="sidebar pop-in">
+      <h2 id="txtDashboard" data-i18n="dashboard">لوحة صاحب المستشفى</h2>
+      <div id="ownerName"></div>
+
+      <div class="menu">
+
+        <div class="menu-item side-btn active" id="tab_users"
+          onclick="switchTab('users')">
+        <span id="txtManageUsers" data-i18n="manageUsers">إدارة المستخدمين</span>
+      </div>
+
+      <div class="menu-item side-btn" id="tab_transfers"
+          onclick="switchTab('transfers')">
+        <span id="txtTransfers" data-i18n="transferRequests">طلبات التحويل</span>
+      </div>
+
+      <div class="menu-item side-btn" id="tab_analytics"
+          onclick="switchTab('analytics')">
+        <span id="txtStatistics" data-i18n="statistics">الإحصائيات</span>
+      </div>
+
+        <button class="btn small danger" onclick="logout()">
+          <span id="txtLogout" data-i18n="logout">تسجيل خروج</span>
+        </button>
+
+      </div>
+    </aside>
+
+    <main class="main">
+
+      <div id="pane_users" class="tab-content active">
+
+        <div class="card pop-in">
+          <h3 data-i18n="departments">الأقسام</h3>
+          <div style="display:flex; gap:8px;">
+            <input id="deptName" data-i18n-placeholder="deptName" placeholder="اسم القسم">
+            <button class="btn primary" data-i18n="add" onclick="addDept()">إضافة</button>
+          </div>
+          <ul id="deptList" style="margin-top:8px"></ul>
+        </div>
+
+        <div class="card pop-in">
+          <h3 data-i18n="createAccount">إنشاء حساب</h3>
+
+          <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:8px;">
+
+            <select id="role" onchange="handleRoleChange()">
+              <option value="doctor" data-i18n="doctor">دكتور</option>
+              <option value="patient" data-i18n="patient">مريض</option>
+              <option value="administrative" data-i18n="administrative">إداري</option>
+            </select>
+
+            <input id="name" data-i18n-placeholder="fullName" placeholder="الاسم الكامل">
+            <input id="username" data-i18n-placeholder="username" placeholder="اسم المستخدم">
+            <input id="email" data-i18n-placeholder="email" placeholder="البريد">
+            <input id="phone" data-i18n-placeholder="phone" placeholder="رقم الهاتف">
+            <input id="nationalId" data-i18n-placeholder="nationalId" placeholder="الرقم القومي">
+            <input id="address" data-i18n-placeholder="address" placeholder="العنوان">
+            <input id="password" data-i18n-placeholder="password" placeholder="كلمة المرور">
+
+            <select id="dept" onchange="filterDoctors()"></select>
+            <select id="assignDoctor" style="display:none"></select>
+
+            <button id="createUserBtn" class="btn primary" data-i18n="create">إنشاء</button>
+          </div>
+        </div>
+
+        <div class="card pop-in">
+          <h3 data-i18n="usersTable">جداول المستخدمين</h3>
+
+          <h4 data-i18n="doctors">الأطباء</h4>
+          <table id="doctorsTable">
+            <thead>
+              <tr>
+                <th data-i18n="name">الاسم</th>
+                <th data-i18n="username">اسم المستخدم</th>
+                <th data-i18n="phone">رقم الهاتف</th>
+                <th data-i18n="nationalId">الرقم القومي</th>
+                <th data-i18n="address">العنوان</th>
+                <th data-i18n="department">القسم</th>
+                <th data-i18n="actions">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <h4 style="margin-top:14px" data-i18n="patients">المرضى</h4>
+          <table id="patientsTable">
+            <thead>
+              <tr>
+                <th data-i18n="name">الاسم</th>
+                <th data-i18n="username">اسم المستخدم</th>
+                <th data-i18n="phone">رقم الهاتف</th>
+                <th data-i18n="nationalId">الرقم القومي</th>
+                <th data-i18n="address">العنوان</th>
+                <th data-i18n="department">القسم</th>
+                <th data-i18n="assignedDoctor">الطبيب المعالج</th>
+                <th data-i18n="actions">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+          <h4 style="margin-top:14px" data-i18n="administratives">الإداريين</h4>
+          <table id="administrativesTable">
+            <thead>
+              <tr>
+                <th data-i18n="name">الاسم</th>
+                <th data-i18n="username">اسم المستخدم</th>
+                <th data-i18n="phone">رقم الهاتف</th>
+                <th data-i18n="nationalId">الرقم القومي</th>
+                <th data-i18n="address">العنوان</th>
+                <th data-i18n="actions">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+
+        </div>
+      </div>
+
+      <div id="pane_transfers" class="tab-content">
+        <div class="card pop-in">
+          <h3 data-i18n="transferRequests">طلبات التحويل</h3>
+
+          <div style="display:flex; gap:12px; margin-bottom:8px;">
+            <select id="transferFilter" onchange="renderTransfers()">
+              <option value="all" data-i18n="all">الكل</option>
+              <option value="pending" data-i18n="pending">معلق</option>
+              <option value="approved" data-i18n="approved">مقبول</option>
+              <option value="rejected" data-i18n="rejected">مرفوض</option>
+            </select>
+
+            <input id="transferSearch" data-i18n-placeholder="search" placeholder="بحث..." oninput="renderTransfers()">
+          </div>
+
+          <table id="transfersTable">
+            <thead>
+              <tr>
+                <th data-i18n="patient">المريض</th>
+                <th data-i18n="oldDept">التخصص القديم</th>
+                <th data-i18n="fromDoctor">من طبيب</th>
+                <th data-i18n="newDept">التخصص الجديد</th>
+                <th data-i18n="newDoctor">الطبيب الجديد</th>
+                <th data-i18n="date">التاريخ</th>
+                <th data-i18n="actions">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="pane_analytics" class="tab-content">
+        <div class="card pop-in">
+          <h3 data-i18n="statistics">الإحصائيات</h3>
+
+          <canvas id="chartTransfersPerDay"></canvas>
+          <canvas id="chartTransferStatus" style="margin-top:20px"></canvas>
+          <canvas id="chartPatientStatus" style="margin-top:20px"></canvas>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="side-modal-backdrop" id="modalBackdrop" onclick="closeSideModal()"></div>
+
+  <div class="side-modal" id="sideModal">
+    <div class="modal-header">
+      <h3 id="modalTitle" data-i18n="editUser">تعديل المستخدم</h3>
+      <button class="btn danger" onclick="closeSideModal()">✖</button>
+    </div>
+
+    <div class="modal-row">
+      <label data-i18n="name">الاسم</label>
+      <input type="text" id="modal_name">
+    </div>
+
+    <div class="modal-row">
+      <label data-i18n="username">اسم المستخدم</label>
+      <input type="text" id="modal_username">
+    </div>
+
+    <div class="modal-row">
+      <label data-i18n="phone">رقم الهاتف</label>
+      <input type="text" id="modal_phone" data-i18n-placeholder="phone" placeholder="رقم الهاتف">
+    </div>
+
+    <div class="modal-row">
+      <label data-i18n="nationalId">الرقم القومي</label>
+      <input type="text" id="modal_national_id" data-i18n-placeholder="nationalId" placeholder="الرقم القومي">
+    </div>
+
+    <div class="modal-row">
+      <label data-i18n="address">العنوان</label>
+      <input type="text" id="modal_address" data-i18n-placeholder="address" placeholder="العنوان">
+    </div>
+
+    <div class="modal-row" id="modal_dept_row">
+      <label data-i18n="department">القسم</label>
+      <select id="modal_dept"></select>
+    </div>
+
+    <div class="modal-row" id="modal_assign_doc_row">
+      <label data-i18n="assignedDoctor">الطبيب المعالج</label>
+      <select id="modal_assign_doctor"></select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn primary" data-i18n="save" onclick="saveUserEdits()">حفظ</button>
+    </div>
+
+  </div>
+
+<div class="side-modal" id="resetModal" style="width:360px;">
+    <div class="modal-header">
+      <h3 data-i18n="resetPassword">إعادة تعيين كلمة المرور</h3>
+      <button class="btn danger" onclick="closeResetPasswordModal()">✖</button>
+    </div>
+
+    <div class="modal-row">
+      <label data-i18n="newPassword">كلمة المرور الجديدة</label>
+      <input type="password" id="reset_new_password">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn primary" data-i18n="save" onclick="confirmResetPassword()">حفظ</button>
+      <button class="btn reset" data-i18n="defaultPassword" onclick="fillDefaultPassword()">123456</button>
+    </div>
+  </div>
+
+  <script src="/eel.js"></script>
+  <script src="owner_v3.js"></script>
+  
+  
+  </body>
+</html>
