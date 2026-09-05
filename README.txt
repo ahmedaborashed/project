@@ -104,13 +104,8 @@ Future Enhancements
 
 --------------------------------------------------
 
-Developers
-- Ahmed Mohamed Abo Rashed  
-- Seif Adel Eltanaihey  
-- Mohamed Ahmed Elshanawy  
-- Gamal Osama Areda  
-- Basmala Mahmoud Radwan  
-- Shahd Ehab Mohamed 
+Developer
+- ahmed abdelghany sherif
 
 --------------------------------------------------
 
